@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flustars/flustars.dart';
 import 'package:lpinyin/lpinyin.dart';
 import 'package:giffy_dialog/giffy_dialog.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:awesome_dialog/animated_button.dart';
 import '../pages/will_pop_scopeTestRoute.dart';
+import 'package:progress_dialog/progress_dialog.dart';
+import '../pages/step_processPage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:dio/dio.dart';
+import '../config/httpHeaders.dart';
+
+//import 'package:base_library/base_library.dart';
+import 'package:flustars/flustars.dart';
+import '../utils/DioHelper.dart';
+
+import 'package:common_utils/common_utils.dart';
 
 class MyDialogPage extends StatefulWidget {
   @override
@@ -12,6 +22,11 @@ class MyDialogPage extends StatefulWidget {
 }
 
 class _MyDialogPageState extends State<MyDialogPage> {
+  double percentage = 0.0;
+
+  //定义变量
+  ProgressDialog pr;
+
   // 屏幕宽
   double _screenWidth = 0.0;
 
@@ -21,9 +36,9 @@ class _MyDialogPageState extends State<MyDialogPage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     widgetUtil = null;
+    this.pr = null;
+    super.dispose();
   }
 
   @override
@@ -80,8 +95,6 @@ class _MyDialogPageState extends State<MyDialogPage> {
                         print(ChineseHelper.convertCharToTraditionalChinese(
                             'wanglaicai'));
                         //正则
-
-                        print(RegexUtil.isDate('2020-04-05'));
                         //定时任务
                       },
                     ),
@@ -259,6 +272,21 @@ class _MyDialogPageState extends State<MyDialogPage> {
 
   @override
   Widget build(BuildContext context) {
+    pr = new ProgressDialog(context,
+        type: ProgressDialogType.Download, isDismissible: true, showLogs: true);
+    pr.style(
+        message: 'Downloading file...',
+        borderRadius: 10.0,
+        backgroundColor: Colors.white,
+        progressWidget: CircularProgressIndicator(),
+        elevation: 10.0,
+        insetAnimCurve: Curves.easeInOut,
+        progress: 0.0,
+        maxProgress: 100.0,
+        progressTextStyle: TextStyle(
+            color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+        messageTextStyle: TextStyle(
+            color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600));
     return Scaffold(
       appBar: AppBar(title: Text('Dialog')),
       body: Center(
@@ -287,8 +315,16 @@ class _MyDialogPageState extends State<MyDialogPage> {
               height: 20,
             ),
             RaisedButton(
-              child: Text('toast-fluttertoast第三方库'),
-              onPressed: () {},
+              child: Text('Fluttertoast'),
+              onPressed: () {
+                Fluttertoast.showToast(
+                  msg: "提示信息",
+                  toastLength: Toast.LENGTH_SHORT,
+                  backgroundColor: Colors.black,
+                  gravity: ToastGravity.BOTTOM,
+                  textColor: Colors.white,
+                );
+              },
             ),
             SizedBox(
               height: 20,
@@ -333,6 +369,129 @@ class _MyDialogPageState extends State<MyDialogPage> {
                     MaterialPageRoute(builder: (_) => WillPopScopeTestRoute()));
               },
             ),
+            SizedBox(
+              height: 20,
+            ),
+            RaisedButton(
+              color: Colors.blue,
+              textColor: Colors.white,
+              child: Text('progress_dialog'),
+              onPressed: () {
+                pr.show();
+                Future.delayed(Duration(seconds: 2)).then((onvalue) {
+                  this.percentage += 30.0;
+                  print(this.percentage);
+                  this.pr.update(
+                        progress: percentage,
+                        message: "Please wait...",
+                        progressWidget: Container(
+                            padding: EdgeInsets.all(8.0),
+                            child: CircularProgressIndicator()),
+                        maxProgress: 100.0,
+                        progressTextStyle: TextStyle(
+                            color: Colors.black,
+                            fontSize: 13.0,
+                            fontWeight: FontWeight.w400),
+                        messageTextStyle: TextStyle(
+                            color: Colors.black,
+                            fontSize: 19.0,
+                            fontWeight: FontWeight.w600),
+                      );
+                  Future.delayed(Duration(seconds: 2)).then((value) {
+                    this.percentage += 30.0;
+                    this.pr.update(
+                        progress: percentage, message: "Few more seconds...");
+                    print(this.percentage);
+                    Future.delayed(Duration(seconds: 2)).then((value) {
+                      this.percentage += 30.0;
+                      this.pr.update(
+                          progress: percentage, message: "Almost done...");
+                      print(this.percentage);
+                      Future.delayed(Duration(seconds: 2)).then((value) {
+                        pr.hide().whenComplete(() {
+                          print(this.pr.isShowing());
+                        });
+                        this.percentage = 0.0;
+                      });
+                    });
+                  });
+                });
+                Future.delayed(Duration(seconds: 10)).then((onvalue) {
+                  print("PR status  ${pr.isShowing()}");
+                  if (this.pr.isShowing()) {
+                    this.pr.hide().then((ishidden) {
+                      print(ishidden);
+                    });
+                    print("PR status  ${pr.isShowing()}");
+                  }
+                });
+              },
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            RaisedButton(
+              child: Text('step_progress'),
+              onPressed: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => MyStepProgressPage()));
+              },
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            RaisedButton(
+              child: Text('Dio网络请求'),
+              onPressed: () async {
+                DioHelper().setConfig(HttpConfig('http://192.168.1.102:3000',interceptors: [LogInterceptor(responseBody: false)]));
+//                HttpManager().init(baseUrl:'http://192.168.1.102:3000' );
+//                HttpManager().get(url: '/getAll',successCallback: (data){
+//                  print(data);
+//                });
+//                var relsult2 = await DioHelper().getAsync(url: '/getAll', params: {'aa': 1});
+//                print(relsult2);
+//                DioHelper().post(
+//                    url: '/add',
+//                    data: {'username': 'wanglaicai', 'password': 'aa123456'},
+//                    successCallback: (data) {
+//                      print(data);
+//                    });
+                var result = await DioHelper().postAsync(
+                    url: '/add',
+                    data: {'username': 'wanglaicaiddd', 'password': 'aa123456ssss'});
+                print(result);
+
+//                try {
+//                  Response response =
+//                      await Dio().get("http://192.168.1.102:3000/getAll", queryParameters: {"id": 12, "name": "wendu"});
+//                  print('---------------->$response');
+//                  print('---------------->${response.data}');
+//                  print(response is Response);
+//                  print(response.data is String);
+//                } catch (e) {
+//                  print(e);
+//                }
+                //           DioUtil.openDebug();
+//                var options = DioUtil.getDefOptions();
+//                options.baseUrl = "http://192.168.1.102:3000/";
+//                HttpConfig config = new HttpConfig(options: options);
+//                DioUtil().setConfig(config);
+//                //示例
+////                DioUtil().request<List>(Method.get, "banner/json");
+//                var baseResp =
+//                    await DioUtil.getInstance().request(Method.get, "/getAll");
+//                print(baseResp);
+
+//                try {
+//                //  var dio = new Dio();
+//                  Response response = await  HttpManager().client.get(
+//                      "/getAll");
+//                  print(response);
+//                } catch (e) {
+//                  print(e);
+//                }
+              },
+            )
           ],
         ),
       ),

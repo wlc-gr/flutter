@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import './routes/Routes.dart';
+import './config/httpHeaders.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
+  MyApp() {}
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
