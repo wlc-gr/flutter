@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:connectivity/connectivity.dart';
-import 'package:date_format/date_format.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/adapter.dart';
@@ -21,8 +22,7 @@ class Method {
 ///Http配置.
 class HttpConfig {
   /// constructor.
-  HttpConfig(
-    @required this.baseUrl, {
+  HttpConfig({
     this.options,
     this.pem,
     this.pKCSPath,
@@ -32,8 +32,6 @@ class HttpConfig {
 
   /// Options.
   BaseOptions options;
-
-  String baseUrl;
 
   /// 详细使用请查看dio官网 https://github.com/flutterchina/dio/blob/flutter/README-ZH.md#Https证书校验.
   /// PEM证书内容.
@@ -103,7 +101,7 @@ class DioHelper {
   /// [receiveTimeout] 接收超时赶时间
   /// [interceptors] 基础拦截器
   void setConfig(HttpConfig config) {
-    _mergeOption(config.options ?? BaseOptions(baseUrl: config.baseUrl));
+    _mergeOption(config.options);
     if (config.interceptors != null && config.interceptors.isNotEmpty) {
       _client.interceptors..addAll(config.interceptors);
     }
@@ -141,7 +139,7 @@ class DioHelper {
   ///[params] url请求参数支持restful
   ///[options] 请求配置
   ///[tag] 请求统一标识，用于取消网络请求
-  Future<Response> getAsync({
+  Future getAsync({
     @required String url,
     Map<String, dynamic> params,
     Options options,
@@ -163,7 +161,7 @@ class DioHelper {
   ///[successCallback] 请求成功回调
   ///[errorCallback] 请求失败回调
   ///[tag] 请求统一标识，用于取消网络请求
-  Future<Response> postAsync({
+  Future postAsync({
     @required String url,
     data,
     Map<String, dynamic> params,
@@ -185,7 +183,7 @@ class DioHelper {
   ///[params] url请求参数支持restful
   ///[options] 请求配置
   ///[tag] 请求统一标识，用于取消网络请求
-  Future<Response> _requestAsync({
+  Future _requestAsync({
     @required String path,
     String method,
     data,
@@ -221,11 +219,11 @@ class DioHelper {
           queryParameters: params,
           options: options,
           cancelToken: cancelToken);
-      if (response.statusCode == HttpStatus.ok ||
-          response.statusCode == HttpStatus.created) {
-        return response;
+      if (response.data is Map) {
+        return response.data;
+      } else {
+        return _decodeData(response);
       }
-      return response;
     } on DioError catch (e, s) {
       print("请求出错：$e\n$s");
       if (e.type != DioErrorType.CANCEL)
@@ -337,7 +335,11 @@ class DioHelper {
           queryParameters: params,
           options: options,
           cancelToken: cancelToken);
-      successCallback(response);
+      if (response.data is Map) {
+        successCallback(response.data);
+      } else {
+        successCallback(_decodeData(response));
+      }
     } on DioError catch (e, s) {
       print("请求出错：$e\n$s");
       if (e.type != DioErrorType.CANCEL)
@@ -414,7 +416,11 @@ class DioHelper {
           options: options,
           cancelToken: cancelToken);
       //成功
-      successCallback(response.data);
+      if (response.data is Map) {
+        successCallback(response.data);
+      } else {
+        successCallback(_decodeData(response));
+      }
     } on DioError catch (e, s) {
       if (e.type != DioErrorType.CANCEL) {
         print("请求出错：$e\n$s");
@@ -499,7 +505,11 @@ class DioHelper {
           options: options,
           cancelToken: cancelToken);
       //成功
-      successCallback(response);
+      if (response.data is Map) {
+        successCallback(response.data);
+      } else {
+        successCallback(_decodeData(response));
+      }
     } on DioError catch (e, s) {
       if (e.type != DioErrorType.CANCEL) {
         print("请求出错：$e\n$s");
@@ -524,6 +534,22 @@ class DioHelper {
     return dio;
   }
 
+  /// get Def Options.
+  static BaseOptions getDefOptions() {
+    BaseOptions options = new BaseOptions();
+    options.connectTimeout = CONNECT_TIMEOUT;
+    options.receiveTimeout = RECEIVE_TIMEOUT;
+    return options;
+  }
+
+  static BaseOptions addBaseUrl(@required String baseUrl) {
+    BaseOptions options = new BaseOptions();
+    options.connectTimeout = CONNECT_TIMEOUT;
+    options.receiveTimeout = RECEIVE_TIMEOUT;
+    options.baseUrl = baseUrl;
+    return options;
+  }
+
   /// check Options.
   Options _checkOptions(method, options) {
     options = options ?? Options(method: method ?? Method.get);
@@ -538,6 +564,16 @@ class DioHelper {
       }
       _cancelTokens.remove(tag);
     }
+  }
+
+  /// decode response data.
+  Map<String, dynamic> _decodeData(Response response) {
+    if (response == null ||
+        response.data == null ||
+        response.data.toString().isEmpty) {
+      return new Map();
+    }
+    return json.decode(response.data.toString());
   }
 
   ///restful处理

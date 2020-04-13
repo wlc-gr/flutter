@@ -15,6 +15,7 @@ import 'package:flustars/flustars.dart';
 import '../utils/DioHelper.dart';
 
 import 'package:common_utils/common_utils.dart';
+import '../pages/pull_to_refresh.dart';
 
 class MyDialogPage extends StatefulWidget {
   @override
@@ -443,53 +444,19 @@ class _MyDialogPageState extends State<MyDialogPage> {
             RaisedButton(
               child: Text('Dio网络请求'),
               onPressed: () async {
-                DioHelper().setConfig(HttpConfig('http://192.168.1.102:3000',interceptors: [LogInterceptor(responseBody: false)]));
-//                HttpManager().init(baseUrl:'http://192.168.1.102:3000' );
-//                HttpManager().get(url: '/getAll',successCallback: (data){
-//                  print(data);
-//                });
-//                var relsult2 = await DioHelper().getAsync(url: '/getAll', params: {'aa': 1});
-//                print(relsult2);
-//                DioHelper().post(
-//                    url: '/add',
-//                    data: {'username': 'wanglaicai', 'password': 'aa123456'},
-//                    successCallback: (data) {
-//                      print(data);
-//                    });
-                var result = await DioHelper().postAsync(
-                    url: '/add',
-                    data: {'username': 'wanglaicaiddd', 'password': 'aa123456ssss'});
-                print(result);
-
-//                try {
-//                  Response response =
-//                      await Dio().get("http://192.168.1.102:3000/getAll", queryParameters: {"id": 12, "name": "wendu"});
-//                  print('---------------->$response');
-//                  print('---------------->${response.data}');
-//                  print(response is Response);
-//                  print(response.data is String);
-//                } catch (e) {
-//                  print(e);
-//                }
-                //           DioUtil.openDebug();
-//                var options = DioUtil.getDefOptions();
-//                options.baseUrl = "http://192.168.1.102:3000/";
-//                HttpConfig config = new HttpConfig(options: options);
-//                DioUtil().setConfig(config);
-//                //示例
-////                DioUtil().request<List>(Method.get, "banner/json");
-//                var baseResp =
-//                    await DioUtil.getInstance().request(Method.get, "/getAll");
-//                print(baseResp);
-
-//                try {
-//                //  var dio = new Dio();
-//                  Response response = await  HttpManager().client.get(
-//                      "/getAll");
-//                  print(response);
-//                } catch (e) {
-//                  print(e);
-//                }
+//                DioHelper().setConfig(HttpConfig(
+//                    options: DioHelper.addBaseUrl("http://192.168.1.102:3000"),
+//                    interceptors: [LogInterceptor(responseBody: false)]));
+                var result = await DioHelper()
+                    .getAsync(url: "/basicComponents/pc/sys/user/find");
+                print('-------------------------> $result');
+              },
+            ),
+            RaisedButton(
+              child: Text('下拉刷新和上拉分页'),
+              onPressed: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => PullToRefreshPage()));
               },
             )
           ],
