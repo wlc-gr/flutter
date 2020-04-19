@@ -1,0 +1,4 @@
+
+const SESSION_KEY = 'SESSION_KEY';
+
+exports.SESSION_KEY = SESSION_KEY;
