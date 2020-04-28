@@ -28,15 +28,17 @@ class _MyApp2State extends State<MyApp2> {
 
 //初始化网络请求
   void _initDio() {
-    BaseOptions baseOptions = DioHelper.addBaseUrl('http://test.sunxung.cn:3083');
+    BaseOptions baseOptions =
+        DioHelper.addBaseUrl('http://test.sunxung.cn:3083');
     String cookie = SpUtil.getString('app_token');
     if (ObjectUtil.isNotEmpty(cookie)) {
       Map<String, dynamic> _headers = new Map();
       _headers["Cookie"] = cookie;
       baseOptions.headers = _headers;
-    }else{
+    } else {
       Map<String, dynamic> _headers = new Map();
-      _headers["Cookie"] = "user_login_name=wanglaicai; test_sid=03133f510efc4e149425e33b9d073746";
+      _headers["Cookie"] =
+          "user_login_name=wanglaicai; test_sid=03133f510efc4e149425e33b9d073746";
       baseOptions.headers = _headers;
     }
     HttpConfig config =
@@ -64,7 +66,8 @@ class _MyApp2State extends State<MyApp2> {
       ),
       debugShowCheckedModeBanner: false,
       title: '路由导航',
-      initialRoute: '/my_dialog',
+//      initialRoute: '/user_login_page',
+      initialRoute: '/devide_or_location',
       onGenerateRoute: onGenerateRoute,
 //        theme: ThemeData(primarySwatch: Colors.green)
     );

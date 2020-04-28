@@ -20,6 +20,9 @@ import '../pages/inner_flutter_datepicker.dart';
 import '../pages/flutter_cupertino_date_pickerPage.dart';
 import '../pages/swiper_page.dart';
 import '../pages/my_dialog.dart';
+import '../pages/my_shart_page.dart';
+import '../pages/user_login_page.dart';
+import '../pages/device_and_location_info.dart';
 
 //配置路由
 final routes = {
@@ -45,6 +48,10 @@ final routes = {
       FlutterCupertionPickerDemo(),
   '/myswiper': (context) => MySwiperPage(),
   '/my_dialog': (context) => MyDialogPage(),
+  '/my_shart': (context) => MyShartPage(),
+  '/user_login_page': (context) => UserLoginPage(),
+  '/devide_or_location':(context)=>DeviceAndLocationInfo(),
+
 };
 //统一路由管理
 var onGenerateRoute = (RouteSettings settings) {
