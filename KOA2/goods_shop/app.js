@@ -8,6 +8,7 @@ const logger = require('koa-logger');
 const jwt = require('koa-jwt');
 const cors = require('koa2-cors');
 const DBError = require('./utils/DBError');
+const session2 = require('koa-session2');
 
 //导入路由
 const users = require('./routes/users');
@@ -42,6 +43,11 @@ app.use(cors({
 //请求参数解析
 app.use(bodyparser({
     enableTypes: ['json', 'form', 'text']
+}));
+//配置session共享
+app.use(session2({
+    key: SESSION_KEY,
+    store: new Store(),
 }));
 app.use(json());
 app.use(logger());

@@ -1,8 +1,10 @@
 //引入sequelize
 const {Sequelize} = require('sequelize');
-const sequelize = new Sequelize('postgres', 'postgres', '123456', {
+const {DB_NAME, DB_USER, DB_PWD, DB_HOST, DB_PORT} = require('./constant');
+const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PWD, {
     logging: (...msg) => console.log(msg),//开启控制台打印SQL
-    host: 'localhost',//
+    host: DB_HOST,//
+    port: DB_PORT,
     dialect: "postgres", //数据库方言
     pool: {
         max: 50,

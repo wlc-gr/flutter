@@ -60,7 +60,6 @@ class UserService {
                     email
                 }
             });
-            console.log('-------------->'+user)
             return user;
         } catch (error) {
             console.log(error)

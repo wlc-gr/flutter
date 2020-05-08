@@ -2,6 +2,7 @@ const UserService = require('../services/UserService');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
+const EmailUtils = require('../utils/emailUtils');
 
 /**
  * 用户注册
@@ -57,7 +58,8 @@ exports.signup = async (ctx) => {
  * @returns {Promise<void>}
  */
 exports.login = async (ctx) => {
-    let user = ctx.request.body;
+    let user = ctx.request.body||{};
+    Object.assign(user, ctx.request.query);
     const emailSigned = await UserService.getUserByEmail(user.email);
     //如果不存在
     if (!emailSigned) {
@@ -89,4 +91,32 @@ exports.login = async (ctx) => {
             }
         }
     }
+}
+
+/**
+ * 发送邮件注册验证码
+ * @param ctx
+ * @returns {Promise<void>}
+ */
+exports.verificationCode = async (ctx) => {
+    let emailInfo = ctx.request.query;
+    if (!emailInfo.email) {
+        ctx.body = {
+            code: 10000,
+            message: '请填写发送邮件地址!'
+        };
+        return;
+    }
+    EmailUtils.getInstance().sendEmil(emailInfo.email, emailInfo.subject, emailInfo.user, '66666', emailInfo.shopname, function (error, info) {
+        if (error) {
+            ctx.body = {
+                code: 10000,
+                message: '发送邮件失败'
+            };
+        }
+    });
+    ctx.body = {
+        code: 10000,
+        message: '发送邮件失败'
+    };
 }
