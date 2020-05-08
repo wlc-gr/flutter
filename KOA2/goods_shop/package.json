@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "blueimp-md5": "^2.14.0",
     "debug": "^4.1.1",
     "ejs": "~2.3.3",
     "jsonwebtoken": "^8.5.1",

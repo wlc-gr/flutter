@@ -2,7 +2,10 @@ const UserService = require('../services/UserService');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
-const EmailUtils = require('../utils/emailUtils');
+const EmailUtils = require('../utils/emailUtils');//发送邮件服务
+const sms_util = require('../utils/sms_util');//发送短信服务
+const validator = require('validatorjs');//基本验证器
+const svgCaptcha = require('svg-captcha');//svg图片验证码
 
 /**
  * 用户注册
@@ -58,7 +61,7 @@ exports.signup = async (ctx) => {
  * @returns {Promise<void>}
  */
 exports.login = async (ctx) => {
-    let user = ctx.request.body||{};
+    let user = ctx.request.body || {};
     Object.assign(user, ctx.request.query);
     const emailSigned = await UserService.getUserByEmail(user.email);
     //如果不存在
@@ -120,3 +123,62 @@ exports.verificationCode = async (ctx) => {
         message: '发送邮件失败'
     };
 }
+
+/*发送短信服务 费用已完*/
+
+function isTelCode(str) {
+    var reg = /^((0\d{2,3}-\d{7,8})|(1[3584]\d{9}))$/;
+    return reg.test(str);
+}
+
+exports.sendcode = async (ctx, next) => {
+    let param = ctx.request.body || {};
+    Object.assign(param, ctx.request.query);
+    let phone = param.phone;
+    //2. 校验数据
+    if (!isTelCode(phone)) {
+        ctx.body = {
+            code: 10000,
+            message: '输入的手机号码有误'
+        };
+        return;
+    }
+    //生成验证码(6位随机数)
+    var code = sms_util.randomCode(6);
+    //发送给指定的手机号
+    console.log(`向${phone}发送验证码短信: ${code}`);
+    console.log('--------------==')
+    await sms_util.sendCode(phone, code, function (success) {//success表示是否成功
+        if (success) {
+            // users[phone] = code
+            // console.log('保存验证码: ', phone, code)
+            ctx.body = {
+                code: 0,
+                message: '手机验证码发送成功'
+            };
+        } else {
+            //3. 返回响应数据
+            ctx.body = {
+                code: 10000,
+                message: '短信验证码发送失败'
+            };
+        }
+    })
+}
+
+/*图片验证码*/
+exports.captcha = async (ctx, next) => {
+    let captcha = await svgCaptcha.create({
+        ignoreChars: '0o1l',
+        noise: 6,
+        color: true
+    });
+    console.log(captcha.data);
+    //ctx.response.type='svg';
+    ctx.body = {
+        code: 10000,
+        message: captcha.data
+    };
+    next();
+}
+

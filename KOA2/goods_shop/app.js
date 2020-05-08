@@ -9,6 +9,7 @@ const jwt = require('koa-jwt');
 const cors = require('koa2-cors');
 const DBError = require('./utils/DBError');
 const session2 = require('koa-session2');
+const RedisForSession =require('./config/RedisForSession');
 
 //导入路由
 const users = require('./routes/users');
@@ -28,6 +29,28 @@ const users = require('./routes/users');
 //     }
 // });
 
+// function routerResponse(option={}){
+//     return function(ctx,next){
+//         ctx.success = function (data,code,msg) {
+//             ctx.type = option.type || 'json'
+//             ctx.body = {
+//                 code : code||option.successCode || 10000,
+//                 message : msg ||option.successMsg || 'success',
+//                 data : data
+//             }
+//         }
+//
+//         ctx.fail = function (msg,code) {
+//             ctx.type = option.type || 'json'
+//             ctx.body = {
+//                 code : code || option.failCode || 0,
+//                 message : msg || option.successMsg || 'fail',
+//             }
+//         }
+//         next();
+//     }
+// }
+// app.use(routerResponse());
 
 // error handler
 onerror(app);
@@ -46,8 +69,7 @@ app.use(bodyparser({
 }));
 //配置session共享
 app.use(session2({
-    key: SESSION_KEY,
-    store: new Store(),
+    store: new RedisForSession(),
 }));
 app.use(json());
 app.use(logger());
